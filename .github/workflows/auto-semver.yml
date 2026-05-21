@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PAT }}
 
       - name: Determine bump type
         id: bump
@@ -58,7 +58,7 @@ jobs:
           echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
           echo "Bump type: $BUMP"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
 
       - name: Bump version
         id: version
@@ -117,4 +117,5 @@ jobs:
           git add manifest.json CHANGELOG.md
           git commit -m "chore(release): bump to v${VERSION}"
           git tag "v${VERSION}"
+          git remote set-url origin "https://x-access-token:${{ secrets.RELEASE_PAT }}@github.com/${{ github.repository }}"
           git push origin main --tags
