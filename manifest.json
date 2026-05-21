@@ -4,8 +4,16 @@
     "name": "Random Respawn",
     "description": "Teleports players to a random safe location after respawn. Uses scripting API.",
     "uuid": "b33f9e6d-8230-466c-98e6-3dd00123e43d",
-    "version": [0, 1, 0],
-    "min_engine_version": [1, 21, 70]
+    "version": [
+      0,
+      1,
+      1
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      70
+    ]
   },
   "modules": [
     {
@@ -13,7 +21,11 @@
       "language": "javascript",
       "uuid": "5992d48b-6437-4258-99a2-9ebfe768fe8d",
       "entry": "scripts/main.js",
-      "version": [0, 1, 0]
+      "version": [
+        0,
+        1,
+        1
+      ]
     }
   ],
   "dependencies": [
