@@ -1,0 +1,3 @@
+*.mcpack
+release/
+.DS_Store
