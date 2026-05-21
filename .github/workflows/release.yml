@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse semver from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          # Strip leading 'v'
+          VERSION="${TAG#v}"
+          # Split into major, minor, patch
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Write version into manifest.json
+        run: |
+          MAJOR="${{ steps.version.outputs.major }}"
+          MINOR="${{ steps.version.outputs.minor }}"
+          PATCH="${{ steps.version.outputs.patch }}"
+          # Update pack header version
+          jq --argjson v "[$MAJOR,$MINOR,$PATCH]" \
+             '.header.version = $v' \
+             manifest.json > manifest.tmp.json && mv manifest.tmp.json manifest.json
+          # Update script module version
+          jq --argjson v "[$MAJOR,$MINOR,$PATCH]" \
+             '(.modules[] | select(.type == "script")).version = $v' \
+             manifest.json > manifest.tmp.json && mv manifest.tmp.json manifest.json
+
+      - name: Generate .mcpack
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PACK_NAME="RandomRespawn-v${VERSION}"
+          # Create a temp directory with the pack structure
+          mkdir -p "release/${PACK_NAME}"
+          cp manifest.json "release/${PACK_NAME}/"
+          cp pack_icon.png "release/${PACK_NAME}/" 2>/dev/null || true
+          cp -r scripts "release/${PACK_NAME}/" 2>/dev/null || true
+          cd release
+          zip -r "../${PACK_NAME}.mcpack" "${PACK_NAME}"
+          cd ..
+          echo "pack_file=${PACK_NAME}.mcpack" >> "$GITHUB_OUTPUT"
+        id: pack
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.version }}"
+          body: |
+            ## Random Respawn v${{ steps.version.outputs.version }}
+
+            ### Installation
+            1. Download `${{ steps.pack.outputs.pack_file }}`
+            2. Double-click to import into Minecraft Bedrock Edition
+            3. Activate in your world's Behavior Pack settings
+
+            ### Requirements
+            - Minecraft Bedrock Edition 1.21.70+
+            - Scripting API enabled
+
+            > **Note:** Achievements are disabled in worlds with scripting packs.
+          files: |
+            ${{ steps.pack.outputs.pack_file }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

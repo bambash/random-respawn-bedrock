@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate manifest.json structure
+        run: |
+          echo "=== Checking manifest.json exists ==="
+          test -f manifest.json || { echo "ERROR: manifest.json missing"; exit 1; }
+          echo "=== Checking valid JSON ==="
+          jq . manifest.json > /dev/null || { echo "ERROR: invalid JSON"; exit 1; }
+          echo "=== Checking format_version ==="
+          FORMAT=$(jq -r '.format_version' manifest.json)
+          [ "$FORMAT" = "2" ] || { echo "ERROR: format_version must be 2, got $FORMAT"; exit 1; }
+          echo "=== Checking header ==="
+          jq -e '.header.name' manifest.json > /dev/null || { echo "ERROR: header.name missing"; exit 1; }
+          jq -e '.header.uuid' manifest.json > /dev/null || { echo "ERROR: header.uuid missing"; exit 1; }
+          jq -e '.header.version' manifest.json > /dev/null || { echo "ERROR: header.version missing"; exit 1; }
+          jq -e '.header.min_engine_version' manifest.json > /dev/null || { echo "ERROR: header.min_engine_version missing"; exit 1; }
+          echo "=== Checking script module ==="
+          jq -e '.modules[] | select(.type == "script")' manifest.json > /dev/null || { echo "ERROR: no script module"; exit 1; }
+          echo "=== Checking dependencies ==="
+          jq -e '.dependencies[] | select(.module_name == "@minecraft/server")' manifest.json > /dev/null || { echo "ERROR: @minecraft/server dependency missing"; exit 1; }
+
+      - name: Validate scripts directory
+        run: |
+          echo "=== Checking scripts/ exists ==="
+          test -d scripts || { echo "ERROR: scripts/ directory missing"; exit 1; }
+          echo "=== Checking main.js exists ==="
+          test -f scripts/main.js || { echo "ERROR: scripts/main.js missing"; exit 1; }
+          echo "=== Checking main.js is non-empty ==="
+          test -s scripts/main.js || { echo "ERROR: scripts/main.js is empty"; exit 1; }
+
+      - name: Check for required files
+        run: |
+          echo "=== Checking pack_icon.png ==="
+          test -f pack_icon.png || echo "WARNING: pack_icon.png missing (optional)"
+          echo "=== Checking README.md ==="
+          test -f README.md || echo "WARNING: README.md missing"
+
+      - name: Validate .mcpack build (dry run)
+        run: |
+          mkdir -p /tmp/pack_test
+          cp manifest.json /tmp/pack_test/
+          cp pack_icon.png /tmp/pack_test/ 2>/dev/null || true
+          cp -r scripts /tmp/pack_test/ 2>/dev/null || true
+          cd /tmp/pack_test
+          zip -r /tmp/test_pack.mcpack .
+          echo "=== .mcpack build successful ==="
+          unzip -l /tmp/test_pack.mcpack
