@@ -5,7 +5,7 @@ A Minecraft Bedrock Edition behavior pack that teleports players to a random saf
 ## How It Works
 
 1. Player dies and respawns
-2. A random X,Z coordinate is generated (500–5000 blocks from origin)
+2. A random X,Z coordinate is generated (500–20000 blocks from origin)
 3. The player is teleported to that location at the world height limit (Y=319)
 4. Resistance V is applied for 8 seconds, letting the player fall safely to the ground
 5. Chunks load automatically on teleport — no manual scanning needed
@@ -29,7 +29,7 @@ Edit `scripts/main.js` to adjust:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `dist` (min) | `500` | Minimum teleport distance from origin |
-| `dist` (max) | `5000` | Maximum teleport distance from origin |
+| `dist` (max) | `20000` | Maximum teleport distance from origin |
 
 ## Important Notes
 
