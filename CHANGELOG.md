@@ -1,3 +1,6 @@
+## [0.1.2] — 2026-05-21
+### Changed
+[0.1.2]: https://github.com/bambash/random-respawn-bedrock/releases/tag/v0.1.2
 ## [0.1.1] — 2026-05-21
 ### Changed
 [0.1.1]: https://github.com/bambash/random-respawn-bedrock/releases/tag/v0.1.1
