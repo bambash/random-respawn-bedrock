@@ -6,9 +6,9 @@ world.afterEvents.playerSpawn.subscribe((event) => {
     // Skip initial world join — only random-teleport on death respawn
     if (initialSpawn) return;
 
-    // Generate random coordinates in a ring 500-5000 blocks out
+    // Generate random coordinates in a ring 500-20000 blocks out
     const angle = Math.random() * Math.PI * 2;
-    const dist = 500 + Math.random() * 4500;
+    const dist = 500 + Math.random() * 19500;
     const x = Math.round(Math.cos(angle) * dist);
     const z = Math.round(Math.sin(angle) * dist);
 
